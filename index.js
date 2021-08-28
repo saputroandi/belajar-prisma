@@ -2,20 +2,29 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const multer = require('multer');
 
+const { errorHandler } = require('./utils');
+
 const app = express();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  errorFormat: 'minimal',
+});
 
 app.post('/user', multer().none(), async (req, res, next) => {
-  const { username, password } = req.body;
+  try {
+    const { username, password, role } = req.body;
 
-  const user = await prisma.user.create({
-    data: {
-      username: username,
-      password: password,
-    },
-  });
+    const user = await prisma.user.create({
+      data: {
+        username: username,
+        password: password,
+        role: role,
+      },
+    });
 
-  return res.json(user);
+    return res.json(user);
+  } catch (error) {
+    errorHandler(res, next, error);
+  }
 });
 
 app.post('/post', multer().none(), async (req, res, next) => {
@@ -56,7 +65,7 @@ app.get('/users', async (req, res, next) => {
 
 app.put('/user/:id', multer().none(), async (req, res, next) => {
   const id = req.params.id;
-  const { username, password } = req.body;
+  const { username, password, role } = req.body;
 
   const user = await prisma.user.update({
     where: {
@@ -65,6 +74,7 @@ app.put('/user/:id', multer().none(), async (req, res, next) => {
     data: {
       username: username,
       password: password,
+      role: role,
     },
   });
 
